@@ -14,6 +14,13 @@ status, color = lightcontrol.get_status(), "#9788FF"
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    """
+        Home page. Gets a post request. Sees which form it came from
+        handles that form's data.
+        power: On or Off
+        update: Change color
+        else: Preset colors: red, green, blue, warm
+    """
     global color
     if request.method == 'POST':
         if request.form.get("power"):
@@ -36,11 +43,14 @@ def index():
                 change_color("#000000")
                 flash("Changing to Warm")
                 color = "#FFFFFF"
-    print(status)
     return render_template("index.html", status=status, color=color)
 
 
 def change_power_state():
+    """
+        Checks what power state the lightbulb currently is in,
+        turns it on or off depending on the power state.
+    """
     global status
     if lightcontrol.get_status() == "On":
         lightcontrol.turn_off()
@@ -51,16 +61,25 @@ def change_power_state():
 
 
 def change_color(c, br=0):
+    """
+        Takes in the hex color value. Spilts up the hex string into
+        their RGB values. Takes those values and makes them an int.
+        Calls change color on the lightbulb controller class
+    """
     global color
     color = c
     c = c.replace("#", "")
-    red = _to_hex(c[:2])
-    green = _to_hex(c[2:4])
-    blue = _to_hex(c[-2:])
+    red = _to_int(c[:2])
+    green = _to_int(c[2:4])
+    blue = _to_int(c[-2:])
     lightcontrol.change_color(red, green, blue)
 
 
-def _to_hex(value):
+def _to_int(value):
+    """
+        Takes the string of a hex byte. Converts into an int.
+        EX: FF = 255
+    """
     return int(value, 16)
 
 

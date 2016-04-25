@@ -27,24 +27,32 @@ class LightControl():
 
 
     def send(self, command):
+        """
+            Sends the command to the light bulb
+        """
         self.sock.send(self.checksum(command))
 
     def checksum(self, command):
+        """
+            Each command has its checksum append to the end.
+            This adds up the bytes, Resets count if overflow, appends
+            the final value to the bytearray
+        """
         checksum = sum(command) & 0xFF
         command.append(checksum)
         return command
 
     def poll(self):
+        """
+            Sends the status command to the lightbulb to see if it is
+            on or off.
+        """
         self.send(self.commands.get("status"))
         res = self.sock.recv(1024)
-        print(res)
-        print(res[-1:])
         if b'\x8d' == res[-1:] or b'\xa3' == res[-1:] or b'#' in res:
             self.status = "On"
-            print("LightControl: on")
         if b'\x8e' == res[-1:] or b'\xa4' == res[-1:] or b'$' in res:
             self.status = "Off"
-            print("LightControl: off")
     
     def get_status(self):
         return self.status
@@ -58,6 +66,11 @@ class LightControl():
         self.status = "Off"
     
     def change_color(self, r, g, b):
+        """
+            Since warm light is different than color light. Notice the 5th
+            and 6th bytes. There are two cases on how to populate the
+            bytearray.
+        """
         if r + g + b == 0:
             c = bytearray([0x31, r, g, b, 0xFF, 0x0F, 0x0F])
         else:
